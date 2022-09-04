@@ -10,7 +10,59 @@
 </head>
 
 <body>
-
+  <script>
+    console.log('Vue ==>', Vue);
+    const vm = new Vue({
+      data() {
+        return {
+          name: 'zhangsan',
+          age: 1,
+          arr: [1, 2, 3, { b: 1 }],
+          date: new Date(),
+          obj: { a: { b: 1 } }
+        }
+      }
+    })
+    console.log('vm ==>', vm);
+    // vm._data.name = 'lisi'
+    // 这里有个问题，为什么我们操作的_data是有响应式的
+    console.log('vm._data.name ==>', vm._data.name)
+    console.log('vm._data ==>', vm._data)
+    console.log('vm._data已被代理在vm上了,vm.name ==>', vm.name)
+    /*
+    vm.arr
+    用户对 data.0 进行取值了 , value =  1
+    用户对 data.1 进行取值了 , value =  2
+    用户对 data.2 进行取值了 , value =  3
+    用户对 data.arr 进行取值了 , value =  [1,2,3]
+    会把所有的值都会遍历get一次
+    */
+    /*
+    vm.obj
+      index.js:21 用户对 data.b 进行取值了 , value =  1
+      index.js:21 用户对 data.a 进行取值了 , value =  {"b":1}
+      index.js:21 用户对 data.b 进行取值了 , value =  1
+      index.js:21 用户对 data.obj 进行取值了 , value =  {"a":{"b":1}}
+      {}
+    vm.obj.a
+      index.js:21 用户对 data.b 进行取值了 , value =  1
+      index.js:21 用户对 data.a 进行取值了 , value =  {"b":1}
+      index.js:21 用户对 data.b 进行取值了 , value =  1
+      index.js:21 用户对 data.obj 进行取值了 , value =  {"a":{"b":1}}
+      index.js:21 用户对 data.b 进行取值了 , value =  1
+      index.js:21 用户对 data.a 进行取值了 , value =  {"b":1}
+      {}
+    vm.obj.a.b
+      index.js:21 用户对 data.b 进行取值了 , value =  1
+      index.js:21 用户对 data.a 进行取值了 , value =  {"b":1}
+      index.js:21 用户对 data.b 进行取值了 , value =  1
+      index.js:21 用户对 data.obj 进行取值了 , value =  {"a":{"b":1}}
+      index.js:21 用户对 data.b 进行取值了 , value =  1
+      index.js:21 用户对 data.a 进行取值了 , value =  {"b":1}
+      index.js:21 用户对 data.b 进行取值了 , value =  1
+      1
+    */
+  </script>
 </body>
 
 </html>
