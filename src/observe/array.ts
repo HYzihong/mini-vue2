@@ -1,6 +1,4 @@
 // 我们需要重写一些数组的原生方法
-
-
 const oldArrayProto = Array.prototype // 获取原生的方法，缓存一份
 
 export const arrayMethods = Object.create(oldArrayProto)
@@ -43,6 +41,7 @@ type ArrayMethods =
 methods.forEach(function (method: ArrayMethods) {
   let _method = oldArrayProto[method] // cache old array prototype method
 
+  // 重写数组的方法
   Object.defineProperty(arrayMethods, method, {
     value: function (...args: any) {
       const result = _method.call(this, ...args) // 内部调用原来的方法，但是进行了函数的劫持，切片编程
@@ -65,30 +64,5 @@ methods.forEach(function (method: ArrayMethods) {
     }
   })
 
-  // _method = function (...args) { // 重写数组的方法
-
-  //   const result = oldArrayProto[method].call(this, ...args) // 内部调用原来的方法，但是进行了函数的劫持，切片编程
-
-  //   // 我们需要在数组发生变异时把新增替换的删除的内容进行监听
-  //   let inserted; // 新增的数据
-  //   let ob = this.__ob__
-  //   console.log(ob);
-  //   switch (method) {
-  //     case 'push':
-  //     case 'unshift':
-  //       inserted = args
-  //       console.log(inserted);
-  //       break;
-  //     case 'splice':
-  //       inserted = args.slice(2)
-  //   }
-  //   if (inserted) {
-  //     console.log(1);
-  //     ob.observeArray(inserted)
-  //   }
-
-
-  //   return result
-  // }
 })
 
