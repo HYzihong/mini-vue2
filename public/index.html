@@ -10,9 +10,17 @@
 </head>
 
 <body>
+  <div id="app">
+    <h1>name - {{name}}</h1>
+    <br />
+    <div style="color: red;">
+      age - <span>{{age}}</span>
+    </div>
+  </div>
   <script>
     console.log('Vue ==>', Vue);
     const vm = new Vue({
+      el: '#app',
       data() {
         return {
           name: 'zhangsan',
@@ -23,12 +31,12 @@
         }
       }
     })
-    console.log('vm ==>', vm);
+    // console.log('vm ==>', vm);
     // vm._data.name = 'lisi'
     // 这里有个问题，为什么我们操作的_data是有响应式的
-    console.log('vm._data.name ==>', vm._data.name)
-    console.log('vm._data ==>', vm._data)
-    console.log('vm._data已被代理在vm上了,vm.name ==>', vm.name)
+    // console.log('vm._data.name ==>', vm._data.name)
+    // console.log('vm._data ==>', vm._data)
+    // console.log('vm._data已被代理在vm上了,vm.name ==>', vm.name)
     /*
     vm.arr
     用户对 data.0 进行取值了 , value =  1
