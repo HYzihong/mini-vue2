@@ -1,4 +1,5 @@
 // 运行时和全量时 多了这个编译方法
+import { nodeAttrsType, nodeChildrenType, nodeELementType, nodeElementTypeEnum } from "./type"
 // 实现跟 htmlparser2 差不多的功能
 const ncname = `[a-zA-Z_][\\-\\.0-9_a-zA-Z]*`
 
@@ -13,37 +14,18 @@ const attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s
 //  第一组匹配的是属性名 key 第二组是 = 第三组or第四组or第n组匹配的是值 value
 // example : x="xxx" x='xxx' x=xxx
 // 因为标签中的属性的值可以包括在双引号中 ， 单引号中 or 什么也不加中
-const defaultTagRE = /\{\{((?:.|\r?\n)+?)\}\}/g // 匹配{{}} 中间可能是有换行or回车
-
-interface nodeAttrsType {
-  name: string, value: any
-}
-
-enum nodeElementTypeEnum {
-  ELEMENT_TYPE = 1,
-  TEXT_TYPE = 3
-}
-
-type nodeChildrenType = nodeELementType | nodeTextType
-
-interface nodeELementType {
-  tag?: string,
-  type?: nodeElementTypeEnum,
-  attrs?: nodeAttrsType[],
-  children?: nodeChildrenType[] | [],
-  parent?: nodeELementType | null
-}
-
-interface nodeTextType extends nodeELementType {
-  type?: nodeElementTypeEnum.TEXT_TYPE,
-  text?: string
-}
+// const defaultTagRE = /\{\{((?:.|\r?\n)+?)\}\}/g // 匹配{{}} 中间可能是有换行or回车
 
 // 解析html
 // 每解析一个字符串删除一个字符串
-export function parseHTML(html: string) {
 
-  // type
+/**
+ * 解析 html ，生成 ast 节点
+ * @param html html字符串
+ */
+export function parseHTML(html: string): nodeELementType {
+
+  // node type
   const ELEMENT_TYPE: nodeElementTypeEnum.ELEMENT_TYPE = 1
   const TEXT_TYPE: nodeElementTypeEnum.ELEMENT_TYPE = 3
 
@@ -67,6 +49,9 @@ export function parseHTML(html: string) {
   }
   */
 
+  /**
+   * 创建一个ast节点 
+   */
   function createASTElement(tag: string, attrs: nodeAttrsType[]): nodeELementType {
     return {
       tag,
@@ -78,9 +63,14 @@ export function parseHTML(html: string) {
   }
 
 
+  /**
+   * 如果当前是开始标签，我们要创建一个ast节点
+   * @param tagName 
+   * @param attrs 
+   */
   function start(tagName: string, attrs: nodeAttrsType[]): void {
     // console.log('start tagName ==> :', tagName);
-    // console.log('start attrs ==> :', attrs);
+    // console.log('start attrs ==> :', JSON.stringify(attrs));
 
     let node = createASTElement(tagName, attrs) // 创造一个一个ast节点
     if (!root) {   // 如果根节点为空
@@ -88,7 +78,7 @@ export function parseHTML(html: string) {
     }
     if (currentParent) { // 如果当前有指向的父节点，说明当前节点是当前指向的父节点的子节点
       node.parent = currentParent as nodeELementType
-      (currentParent.children as nodeChildrenType[]).push(node)
+      currentParent.children.push(node)
     }
 
     // 入栈
@@ -97,7 +87,11 @@ export function parseHTML(html: string) {
     currentParent = node // 当前的临时父节点指向当前创建的节点
   }
 
-  function chars(text: string): void {// 文本内容直接放到当前指向的节点，当识别到标签结束会
+  /**
+   *  文本内容直接放到当前指向的节点，当识别到标签结束会
+   * @param text 文本内容的截取
+   */
+  function chars(text: string): void {
     // console.log('chars text ==>', text);
     if (text && text.replace(/\s/g, '')) {
       (currentParent.children as nodeChildrenType[]).push(
@@ -110,8 +104,10 @@ export function parseHTML(html: string) {
     }
   }
 
-  // 
-  function end(tagName: string) { // 遇到当前标签的节点闭合标签，让当前节点出栈，同时替换当前指向的父节点
+  /**
+   * 遇到当前标签的节点闭合标签，让当前节点出栈，同时替换当前指向的父节点
+   */
+  function end(tagName?: string): void { // 遇到当前标签的节点闭合标签，让当前节点出栈，同时替换当前指向的父节点
     // console.log('end tagName ==>', tagName);
     // let node = stack.pop()
     stack.pop()
@@ -119,14 +115,26 @@ export function parseHTML(html: string) {
     currentParent = stack[stack.length - 1] // 当前指向的父节点，指向上一层的节点
   }
 
-  // 匹配当前字符串，截取
-  function advance(len: number) {
+  /**
+   * 匹配当前字符串，截取定量的字符
+   * @param len length 
+   */
+  function advance(len: number): void {
     html = html.substring(len)
     // console.log('html ==>', html);
   }
 
-  function parseStartTag() {
+  /**
+   * 解析开始标签<xxx xxx="xxx">
+   */
+  function parseStartTag():
+    boolean |
+    {
+      tagName: string
+      attrs: nodeAttrsType[]
+    } {
     const start = html.match(startTagOpen)
+
     if (start) {
       const match: {
         tagName: string
@@ -166,12 +174,13 @@ export function parseHTML(html: string) {
           name: attrs[1],
           value: attrs[3] || attrs[4] || attrs[5] || true
         })
+        // console.log('match attrs', JSON.stringify(match.attrs));
       }
 
-      if (end) {
+      if (end) {  // 如果当前是结束标签 >
         advance(end[0].length) // 删除 结束标签 >
       }
-      // console.log('match 999 ==>', match);
+      // console.log('match 999 ==>', JSON.stringify(match.attrs));
       return match
     }
     return false // 当前不是开始标签
@@ -184,10 +193,10 @@ export function parseHTML(html: string) {
     // 当前不为0时，说明当前是标签的结束
     // vue3 可以直接使用字符串，不需要标签
     if (textEnd == 0) { // 匹配开始标签
-      const startTagMatch = parseStartTag()// 开始标签的匹配
+      const startTagMatch = parseStartTag() as { tagName: string, attrs: nodeAttrsType[] }// 开始标签的匹配
+      // console.log('startTagMatch ==>', JSON.stringify(startTagMatch));
       if (startTagMatch) {
         start(startTagMatch.tagName, startTagMatch.attrs)
-        // console.log('startTagMatch ==>', startTagMatch);
         continue
       }
       let endTagMatch = html.match(endTag)
