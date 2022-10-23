@@ -31,8 +31,10 @@ export function initMixin(Vue: any) { // initMixin 方便在原型上扩展功�
           template = ops.template
         }
       }
-      if (template) { // 如果存在template
-        compileToFunction(template)
+      if (template) { // 如果存在template 就 使用 template 进行解析编译
+        const render = compileToFunction(template)
+        ops.render = render
+        // jsx 最终会被解析成 h()函数
       }
     }
   }

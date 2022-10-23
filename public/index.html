@@ -10,12 +10,14 @@
 </head>
 
 <body>
-  <div id="app">
+  <div id="app" style="margin: 1px;color: aquas;">
     <h1>name - {{name}}</h1>
     <br />
     <div style="color: red;">
       age - <span>{{age}}</span>
+      address - {{address}} - {{name}}
     </div>
+    <div>文本！111</div>
   </div>
   <script>
     console.log('Vue ==>', Vue);
@@ -24,6 +26,7 @@
       data() {
         return {
           name: 'zhangsan',
+          address: 'xxx -- x',
           age: 1,
           arr: [1, 2, 3, { b: 1 }],
           date: new Date(),
